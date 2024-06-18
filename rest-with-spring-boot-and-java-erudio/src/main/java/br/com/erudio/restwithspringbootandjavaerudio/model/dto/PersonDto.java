@@ -1,5 +1,6 @@
 package br.com.erudio.restwithspringbootandjavaerudio.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,6 +13,7 @@ import java.io.Serializable;
 @JsonPropertyOrder({"id","firstName","lastName", "address", "gender"})
 public class PersonDto extends RepresentationModel<PersonDto> implements Serializable {
 
+    @JsonProperty("id")
     private Long key;
     private String firstName;
     private String lastName;
