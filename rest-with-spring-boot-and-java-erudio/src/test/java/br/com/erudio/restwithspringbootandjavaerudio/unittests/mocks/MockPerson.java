@@ -1,7 +1,7 @@
 package br.com.erudio.restwithspringbootandjavaerudio.unittests.mocks;
 
-import br.com.erudio.restwithspringbootandjavaerudio.data.dto.PersonDto;
-import br.com.erudio.restwithspringbootandjavaerudio.model.Person;
+import br.com.erudio.restwithspringbootandjavaerudio.model.dto.PersonDto;
+import br.com.erudio.restwithspringbootandjavaerudio.model.entities.Person;
 
 import java.util.ArrayList;
 import java.util.List;

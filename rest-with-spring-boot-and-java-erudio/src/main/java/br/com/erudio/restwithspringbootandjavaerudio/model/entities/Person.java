@@ -1,4 +1,4 @@
-package br.com.erudio.restwithspringbootandjavaerudio.model;
+package br.com.erudio.restwithspringbootandjavaerudio.model.entities;
 
 import jakarta.persistence.*;
 import lombok.*;

@@ -1,6 +1,6 @@
 package br.com.erudio.restwithspringbootandjavaerudio.controllers;
 
-import br.com.erudio.restwithspringbootandjavaerudio.data.dto.PersonDto;
+import br.com.erudio.restwithspringbootandjavaerudio.model.dto.PersonDto;
 import br.com.erudio.restwithspringbootandjavaerudio.services.PersonService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;

@@ -1,4 +1,4 @@
-package br.com.erudio.restwithspringbootandjavaerudio.data.dto;
+package br.com.erudio.restwithspringbootandjavaerudio.model.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
