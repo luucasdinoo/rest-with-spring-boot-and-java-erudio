@@ -1,0 +1,13 @@
+version: '4.3'
+services:
+  database:
+    image: mysql:8.0
+    container_name: mysql_erudio
+    restart: always
+    environment:
+      MYSQL_DATABASE: 'rest_with_spring_boot_erudio_db'
+      MYSQL_USER: 'docker'
+      MYSQL_PASSWORD: 'docker'
+      MYSQL_ROOT_PASSWORD: 'admin'
+    ports:
+      - '3306:3306'

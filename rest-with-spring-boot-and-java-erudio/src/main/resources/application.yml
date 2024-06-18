@@ -1,1 +1,15 @@
-spring.application.name=rest-with-spring-boot-and-java-erudio
+spring:
+  application:
+    name: rest_with_spring_boot_erudio
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/rest_with_spring_boot_erudio_db?useTimezone=true&serverTimezone=UTC
+    username: docker
+    password: docker
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show_sql: false
+    open-in-view: false
