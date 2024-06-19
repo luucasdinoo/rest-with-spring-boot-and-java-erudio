@@ -1,6 +1,7 @@
 package br.com.erudio.restwithspringbootandjavaerudio.services;
 
 import br.com.erudio.restwithspringbootandjavaerudio.controllers.PersonController;
+import br.com.erudio.restwithspringbootandjavaerudio.exceptions.RequiredObjectIsNullException;
 import br.com.erudio.restwithspringbootandjavaerudio.mapper.ModelMapper;
 import br.com.erudio.restwithspringbootandjavaerudio.model.dto.PersonDto;
 import br.com.erudio.restwithspringbootandjavaerudio.exceptions.ResourceNotFoundException;
@@ -40,6 +41,7 @@ public class PersonService {
     }
 
     public PersonDto create(PersonDto person){
+        if (person == null) throw new RequiredObjectIsNullException();
         log.info("Creating one person!");
         Person entity = ModelMapper.parseObject(person, Person.class);
         PersonDto dto = ModelMapper.parseObject(personRepository.save(entity), PersonDto.class);
@@ -48,6 +50,7 @@ public class PersonService {
     }
 
     public PersonDto update(PersonDto person){
+        if (person == null) throw new RequiredObjectIsNullException();
         log.info("Updating one person!");
         Person entity = personRepository.findById(person.getKey()).orElseThrow(() -> new ResourceNotFoundException("No records found for this ID"));
         entity.setFirstName(person.getFirstName());
