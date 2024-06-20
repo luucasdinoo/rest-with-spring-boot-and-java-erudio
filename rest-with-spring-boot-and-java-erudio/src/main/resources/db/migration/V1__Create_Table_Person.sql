@@ -1,3 +1,4 @@
+
 create table person
 (
     id         bigint auto_increment primary key,
