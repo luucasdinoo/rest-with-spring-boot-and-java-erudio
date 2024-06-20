@@ -15,6 +15,7 @@ import br.com.erudio.restwithspringbootandjavaerudio.util.MediaType;
 
 import java.util.List;
 
+//@CrossOrigin
 @RestController
 @RequestMapping("/api/person/v1")
 @RequiredArgsConstructor
@@ -23,6 +24,7 @@ public class PersonController {
 
     private final PersonService personService;
 
+    @CrossOrigin(origins = "http://localhost:8080") // Permitir o acesso apenas para a url localhost:8080 com CORS
     @GetMapping(value = "/{id}", produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.APPLICATION_YML})
     @Operation(summary = "Finds a person", description = "Finds a person",
             tags = {"People"},
@@ -58,6 +60,7 @@ public class PersonController {
         return personService.findAll();
     }
 
+    @CrossOrigin(origins = {"http://localhost:8080","https://erudio.com.br"})
     @PostMapping(consumes = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.APPLICATION_YML},
             produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.APPLICATION_YML})
     @Operation(summary = "Add a new person", description = "Add a new person by passing a JSON, XML  or YAML representation  of the person !",
