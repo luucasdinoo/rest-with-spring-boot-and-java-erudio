@@ -5,7 +5,7 @@ security:
   jwt:
     token:
       secret-key: 53cr37
-      expire-lenght: 360000
+      expire-length: 3600000
 
 spring:
   application:
@@ -20,11 +20,13 @@ spring:
   jpa:
     hibernate:
       ddl-auto: none
-    show_sql: false
+    show-sql: true
     open-in-view: false
 
 spring-doc:
   # Documentar apenas os endpoints informados abaixo
-  pathsToMatch: /api/**/v1/**
+  pathsToMatch:
+    - /auth/**
+    - /api/**/v1/**
   swagger-ui:
     use-root-path: true

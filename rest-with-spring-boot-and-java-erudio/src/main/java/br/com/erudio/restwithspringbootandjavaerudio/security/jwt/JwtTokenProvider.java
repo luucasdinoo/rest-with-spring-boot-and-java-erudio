@@ -28,8 +28,8 @@ public class JwtTokenProvider {
     @Value("${security.jwt.token.secret-key:secret}")
     private String secretKey = "secret";
 
-    @Value("${security.jwt.token.expire-lenght:secret}")
-    private long validdityInMilliseconds = 3600000; //1h
+    @Value("${security.jwt.token.expire-length:3600000}")
+    private long validityInMilliseconds = 3600000; //1h
 
     private final UserDetailsService userDetailsService;
 
@@ -43,14 +43,27 @@ public class JwtTokenProvider {
 
     public TokenDto createAccessToken(String username, List<String> roles){
         Date now = new Date();
-        Date valid = new Date(now.getTime() + validdityInMilliseconds);
-        var accessToken = getAccessToken(username, roles, now, valid);
+        Date validity = new Date(now.getTime() + validityInMilliseconds);
+        var accessToken = getAccessToken(username, roles, now, validity);
         var refreshToken = getRefreshToken(username, roles, now);
 
-        return new TokenDto(username, true, now, valid, accessToken, refreshToken);
+        return new TokenDto(username, true, now, validity, accessToken, refreshToken);
     }
 
-    private String getAccessToken(String username, List<String> roles, Date now, Date valid) {
+    public TokenDto refreshToken(String refreshToken) {
+        if (refreshToken.contains("Bearer "))
+            refreshToken = refreshToken.substring("Bearer ".length());
+
+        JWTVerifier verifier = JWT.require(algorithm).build();
+        DecodedJWT decodedJWT = verifier.verify(refreshToken);
+
+        String username = decodedJWT.getSubject();
+        List<String> roles = decodedJWT.getClaim("roles").asList(String.class);
+
+        return createAccessToken(username, roles);
+    }
+
+        private String getAccessToken(String username, List<String> roles, Date now, Date valid) {
         String issuerUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
 
         return JWT.create()
@@ -64,7 +77,7 @@ public class JwtTokenProvider {
     }
 
     private String getRefreshToken(String username, List<String> roles, Date now) {
-        Date validRefreshToken = new Date(now.getTime() + (validdityInMilliseconds * 2));
+        Date validRefreshToken = new Date(now.getTime() + (validityInMilliseconds * 3));
 
         return JWT.create()
                 .withClaim("roles", roles)
@@ -84,8 +97,7 @@ public class JwtTokenProvider {
     private DecodedJWT decodedToken(String token) {
         Algorithm alg =  Algorithm.HMAC256(secretKey.getBytes());
         JWTVerifier verifier = JWT.require(alg).build();
-        DecodedJWT decodedJWT = verifier.verify(token);
-        return decodedJWT;
+        return verifier.verify(token);
     }
 
     public String resolveToken(HttpServletRequest request) {
@@ -108,3 +120,4 @@ public class JwtTokenProvider {
         }
     }
 }
+

@@ -10,6 +10,8 @@ import br.com.erudio.restwithspringbootandjavaerudio.repositories.PersonReposito
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
@@ -59,6 +61,17 @@ public class PersonService {
         entity.setGender(person.getGender());
         PersonDto dto = ModelMapper.parseObject(personRepository.save(entity), PersonDto.class);
         dto.add(linkTo(methodOn(PersonController.class).findById(dto.getKey())).withSelfRel());
+        return dto;
+    }
+
+    @Transactional
+    public PersonDto disablePerson(Long id){
+        log.info("Disabling one person!");
+        personRepository.disablePerson(id);
+        Person entity = personRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("No records found for this ID"));
+        PersonDto dto = ModelMapper.parseObject(entity, PersonDto.class);
+        // HATEOES
+        dto.add(linkTo(methodOn(PersonController.class).findById(id)).withSelfRel());
         return dto;
     }
 

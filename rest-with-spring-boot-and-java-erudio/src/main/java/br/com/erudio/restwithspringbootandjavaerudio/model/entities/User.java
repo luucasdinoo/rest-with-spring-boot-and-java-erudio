@@ -15,17 +15,17 @@ import java.util.List;
 @Table(name = "users")
 @NoArgsConstructor
 @Data
-public class User implements Serializable, UserDetails {
+public class User implements UserDetails, Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "user_name", unique = true)
-    private String userName;
+    private String username;
 
     @Column(name = "full_name")
-    private String fullName;
+    private String fullname;
 
     @Column(name = "password")
     private String password;
@@ -66,7 +66,7 @@ public class User implements Serializable, UserDetails {
 
     @Override
     public String getUsername() {
-        return this.userName;
+        return this.username;
     }
 
     @Override
