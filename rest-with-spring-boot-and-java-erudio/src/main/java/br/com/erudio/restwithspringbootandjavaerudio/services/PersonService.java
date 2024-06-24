@@ -9,6 +9,11 @@ import br.com.erudio.restwithspringbootandjavaerudio.model.entities.Person;
 import br.com.erudio.restwithspringbootandjavaerudio.repositories.PersonRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,14 +21,14 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 
-import java.util.List;
-
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class PersonService {
 
     private final PersonRepository personRepository;
+
+    private final PagedResourcesAssembler<PersonDto> assembler;
 
     public PersonDto findById(Long id){
         log.info("Finding one person!");
@@ -34,12 +39,26 @@ public class PersonService {
         return dto;
     }
 
-    public List<PersonDto> findAll(){
+    public PagedModel<EntityModel<PersonDto>> findAll(Pageable pageable){
         log.info("Finding all persons!");
-        List<PersonDto> persons = ModelMapper.parseListObjects(personRepository.findAll(),PersonDto.class);
-        persons.stream()
-                .forEach(p -> p.add(linkTo(methodOn(PersonController.class).findById(p.getKey())).withSelfRel()));
-        return persons;
+
+        var personPage = personRepository.findAll(pageable);
+        var personDtoPage = personPage.map(p -> ModelMapper.parseObject(p, PersonDto.class));
+        personDtoPage.map(p -> p.add(linkTo(methodOn(PersonController.class).findById(p.getKey())).withSelfRel()));
+
+        Link link = linkTo(methodOn(PersonController.class).findAll(pageable.getPageNumber(), pageable.getPageSize(),"asc")).withSelfRel();
+        return assembler.toModel(personDtoPage, link);
+    }
+
+    public PagedModel<EntityModel<PersonDto>> findPersonsByName(String firstname, Pageable pageable){
+        log.info("Finding all persons!");
+
+        var personPage = personRepository.findPersonsByName(firstname, pageable);
+        var personDtoPage = personPage.map(p -> ModelMapper.parseObject(p, PersonDto.class));
+        personDtoPage.map(p -> p.add(linkTo(methodOn(PersonController.class).findById(p.getKey())).withSelfRel()));
+
+        Link link = linkTo(methodOn(PersonController.class).findAll(pageable.getPageNumber(), pageable.getPageSize(),"asc")).withSelfRel();
+        return assembler.toModel(personDtoPage, link);
     }
 
     public PersonDto create(PersonDto person){

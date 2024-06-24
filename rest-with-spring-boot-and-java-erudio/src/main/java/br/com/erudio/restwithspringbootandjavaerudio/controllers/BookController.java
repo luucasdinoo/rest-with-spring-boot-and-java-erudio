@@ -1,6 +1,7 @@
 package br.com.erudio.restwithspringbootandjavaerudio.controllers;
 
 import br.com.erudio.restwithspringbootandjavaerudio.model.dto.BookDto;
+import br.com.erudio.restwithspringbootandjavaerudio.model.dto.PersonDto;
 import br.com.erudio.restwithspringbootandjavaerudio.services.BookService;
 import br.com.erudio.restwithspringbootandjavaerudio.util.MediaType;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,6 +11,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -54,8 +60,14 @@ public class BookController {
                 @ApiResponse(description = "Not found", responseCode = "404", content = @Content),
                 @ApiResponse(description = "Internal server error", responseCode = "500", content = @Content)
             })
-    public List<BookDto> findAll() {
-        return bookService.findAll();
+    public ResponseEntity<PagedModel<EntityModel<BookDto>>> findAll(@RequestParam(name = "page", defaultValue = "0") Integer page,
+                                                                    @RequestParam(name = "size", defaultValue = "10") Integer size,
+                                                                    @RequestParam(name = "direction", defaultValue = "0") String direction) {
+
+        var sorDirection = "desc".equalsIgnoreCase(direction) ? Sort.Direction.DESC : Sort.Direction.ASC;
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sorDirection, "author"));
+        return ResponseEntity.ok(bookService.findAll(pageable));
     }
 
     @PostMapping(consumes = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.APPLICATION_YML},

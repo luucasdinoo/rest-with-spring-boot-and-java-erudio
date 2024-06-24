@@ -1,14 +1,21 @@
 package br.com.erudio.restwithspringbootandjavaerudio.services;
 
 import br.com.erudio.restwithspringbootandjavaerudio.controllers.BookController;
+import br.com.erudio.restwithspringbootandjavaerudio.controllers.PersonController;
 import br.com.erudio.restwithspringbootandjavaerudio.exceptions.RequiredObjectIsNullException;
 import br.com.erudio.restwithspringbootandjavaerudio.exceptions.ResourceNotFoundException;
 import br.com.erudio.restwithspringbootandjavaerudio.mapper.ModelMapper;
 import br.com.erudio.restwithspringbootandjavaerudio.model.dto.BookDto;
+import br.com.erudio.restwithspringbootandjavaerudio.model.dto.PersonDto;
 import br.com.erudio.restwithspringbootandjavaerudio.model.entities.Book;
 import br.com.erudio.restwithspringbootandjavaerudio.repositories.BookRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,6 +30,9 @@ public class BookService {
 
     private final BookRepository bookRepository;
 
+    private final PagedResourcesAssembler<BookDto> assembler;
+
+
     public BookDto findById(Long id){
         log.info("Finding one book!");
         Book entity = bookRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("No records found for this ID"));
@@ -32,12 +42,15 @@ public class BookService {
         return dto;
     }
 
-    public List<BookDto> findAll(){
+    public PagedModel<EntityModel<BookDto>> findAll(Pageable pageable){
         log.info("Finding all books!");
-        List<BookDto> books = ModelMapper.parseListObjects(bookRepository.findAll(),BookDto.class);
-        books.stream()
-                .forEach(p -> p.add(linkTo(methodOn(BookController.class).findById(p.getKey())).withSelfRel()));
-        return books;
+
+        var bookPage = bookRepository.findAll(pageable);
+        var bookDtoPage = bookPage.map(b -> ModelMapper.parseObject(b, BookDto.class));
+        bookDtoPage.map(p -> p.add(linkTo(methodOn(PersonController.class).findById(p.getKey())).withSelfRel()));
+
+        Link link = linkTo(methodOn(PersonController.class).findAll(pageable.getPageNumber(), pageable.getPageSize(), "asc")).withSelfRel();
+        return assembler.toModel(bookDtoPage, link);
     }
 
     public BookDto create(BookDto book){
