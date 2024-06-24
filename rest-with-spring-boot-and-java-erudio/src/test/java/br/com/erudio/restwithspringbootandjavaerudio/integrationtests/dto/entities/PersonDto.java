@@ -1,4 +1,4 @@
-package br.com.erudio.restwithspringbootandjavaerudio.integrationtests.dto;
+package br.com.erudio.restwithspringbootandjavaerudio.integrationtests.dto.entities;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

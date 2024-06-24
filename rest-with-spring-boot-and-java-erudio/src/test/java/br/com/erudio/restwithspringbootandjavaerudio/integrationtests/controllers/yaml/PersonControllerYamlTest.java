@@ -6,10 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Arrays;
-import java.util.List;
-
 import br.com.erudio.restwithspringbootandjavaerudio.configs.TesteConfigs;
+import br.com.erudio.restwithspringbootandjavaerudio.integrationtests.dto.pagedmodels.PagedModelPerson;
 import br.com.erudio.restwithspringbootandjavaerudio.model.dto.security.AccountCredentialDto;
 import br.com.erudio.restwithspringbootandjavaerudio.model.dto.security.TokenDto;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
@@ -26,7 +24,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 
 
 import br.com.erudio.restwithspringbootandjavaerudio.integrationtests.testcontainers.AbstractIntegrationTest;
-import br.com.erudio.restwithspringbootandjavaerudio.integrationtests.dto.PersonDto;
+import br.com.erudio.restwithspringbootandjavaerudio.integrationtests.dto.entities.PersonDto;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.config.EncoderConfig;
 import io.restassured.config.RestAssuredConfig;
@@ -286,7 +284,7 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 	@Order(6)
 	public void testFindAll() throws JsonMappingException, JsonProcessingException {
 		
-		var content = given().spec(specification)
+		var wrapper = given().spec(specification)
 				.config(
 						RestAssuredConfig
 							.config()
@@ -296,16 +294,17 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 									ContentType.TEXT)))
 				.contentType(TesteConfigs.CONTENT_TYPE_YML)
 				.accept(TesteConfigs.CONTENT_TYPE_YML)
-					.when()
+				.queryParams("page", 3, "size", 10, "direction", "asc")
+				.when()
 					.get()
 				.then()
 					.statusCode(200)
 						.extract()
 						.body()
-						.as(PersonDto[].class, (ObjectMapper) objectMapper);
-		
-		List<PersonDto> people = Arrays.asList(content);
-		
+						.as(PagedModelPerson.class, (ObjectMapper) objectMapper);
+
+		var people = wrapper.getContent();
+
 		PersonDto foundPersonOne = people.get(0);
 		
 		assertNotNull(foundPersonOne.getId());
@@ -366,6 +365,50 @@ public class PersonControllerYamlTest extends AbstractIntegrationTest {
 				.get()
 			.then()
 				.statusCode(403);
+	}
+
+	@Test
+	@Order(8)
+	public void testFindByName() throws JsonMappingException, JsonProcessingException {
+
+		var wrapper = given().spec(specification)
+				.config(
+						RestAssuredConfig
+								.config()
+								.encoderConfig(EncoderConfig.encoderConfig()
+										.encodeContentTypeAs(
+												TesteConfigs.CONTENT_TYPE_YML,
+												ContentType.TEXT)))
+				.contentType(TesteConfigs.CONTENT_TYPE_YML)
+				.accept(TesteConfigs.CONTENT_TYPE_YML)
+				.pathParam("firstName", "ayr")
+				.queryParams("page", 0, "size", 6, "direction", "asc")
+				.when()
+				.get("findPersonByName/{firstName}")
+				.then()
+				.statusCode(200)
+				.extract()
+				.body()
+				.as(PagedModelPerson.class, (ObjectMapper) objectMapper);
+
+		var people = wrapper.getContent();
+
+		PersonDto foundPersonOne = people.get(0);
+
+		assertNotNull(foundPersonOne.getId());
+		assertNotNull(foundPersonOne.getFirstName());
+		assertNotNull(foundPersonOne.getLastName());
+		assertNotNull(foundPersonOne.getAddress());
+		assertNotNull(foundPersonOne.getGender());
+
+		assertTrue(foundPersonOne.getEnabled());
+
+		assertEquals(1, foundPersonOne.getId());
+
+		assertEquals("Ayrton", foundPersonOne.getFirstName());
+		assertEquals("Senna", foundPersonOne.getLastName());
+		assertEquals("São Paulo", foundPersonOne.getAddress());
+		assertEquals("Male", foundPersonOne.getGender());
 	}
 	
 	private void mockPerson() {
