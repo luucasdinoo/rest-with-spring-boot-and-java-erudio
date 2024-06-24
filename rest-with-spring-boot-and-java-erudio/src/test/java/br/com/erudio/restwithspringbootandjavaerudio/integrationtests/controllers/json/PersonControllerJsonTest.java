@@ -1,170 +1,315 @@
 package br.com.erudio.restwithspringbootandjavaerudio.integrationtests.controllers.json;
 
+import static io.restassured.RestAssured.given;
+import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+
 import br.com.erudio.restwithspringbootandjavaerudio.configs.TesteConfigs;
 import br.com.erudio.restwithspringbootandjavaerudio.integrationtests.dto.PersonDto;
 import br.com.erudio.restwithspringbootandjavaerudio.integrationtests.testcontainers.AbstractIntegrationTest;
+import br.com.erudio.restwithspringbootandjavaerudio.model.dto.security.AccountCredentialDto;
+import br.com.erudio.restwithspringbootandjavaerudio.model.dto.security.TokenDto;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.springframework.boot.test.context.SpringBootTest;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.LogDetail;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.specification.RequestSpecification;
-import org.junit.jupiter.api.*;
-import org.springframework.boot.test.context.SpringBootTest;
-
-import static io.restassured.RestAssured.given;
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@TestMethodOrder(OrderAnnotation.class)
 public class PersonControllerJsonTest extends AbstractIntegrationTest {
 
     private static RequestSpecification specification;
-
     private static ObjectMapper objectMapper;
 
-    private static PersonDto personDto;
+    private static PersonDto person;
 
     @BeforeAll
-    public static void setup(){
+    public static void setup() {
         objectMapper = new ObjectMapper();
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-        personDto = new PersonDto();
+        person = new PersonDto();
+    }
+
+    @Test
+    @Order(0)
+    public void authorization() throws JsonMappingException, JsonProcessingException {
+
+        AccountCredentialDto user = new AccountCredentialDto("leandro", "admin123");
+
+        var accessToken = given()
+                .basePath("/auth/signin")
+                .port(TesteConfigs.SERVER_PORT)
+                .contentType(TesteConfigs.CONTENT_TYPE_JSON)
+                .body(user)
+                .when()
+                .post()
+                .then()
+                .statusCode(200)
+                .extract()
+                .body()
+                .as(TokenDto.class)
+                .getAccessToken();
+
+        specification = new RequestSpecBuilder()
+                .addHeader(TesteConfigs.HEADER_PARAM_AUTHORIZATION, "Bearer " + accessToken)
+                .setBasePath("/api/person/v1")
+                .setPort(TesteConfigs.SERVER_PORT)
+                .addFilter(new RequestLoggingFilter(LogDetail.ALL))
+                .addFilter(new ResponseLoggingFilter(LogDetail.ALL))
+                .build();
     }
 
     @Test
     @Order(1)
-    void testCreate() throws JsonProcessingException {
+    public void testCreate() throws JsonMappingException, JsonProcessingException {
         mockPerson();
-
-        specification = new RequestSpecBuilder()
-                .addHeader(TesteConfigs.HEADER_PARAM_ORIGIN,TesteConfigs.ORIGIN_ERUDIO)
-                .setBasePath("/api/person/v1")
-                .setPort(TesteConfigs.SERVER_PORT)
-                .addFilter(new RequestLoggingFilter(LogDetail.ALL))
-                .addFilter(new ResponseLoggingFilter(LogDetail.ALL))
-                .build();
 
         var content = given().spec(specification)
                 .contentType(TesteConfigs.CONTENT_TYPE_JSON)
-                .body(personDto)
-                .when().post()
-                .then().statusCode(200)
-                .extract().body().asString();
+                .body(person)
+                .when()
+                .post()
+                .then()
+                .statusCode(200)
+                .extract()
+                .body()
+                .asString();
 
-        PersonDto createdPerson = objectMapper.readValue(content, PersonDto.class);
-        personDto = createdPerson;
+        PersonDto persistedPerson = objectMapper.readValue(content, PersonDto.class);
+        person = persistedPerson;
 
-        assertNotNull(createdPerson);
-        assertNotNull(createdPerson.getId());
-        assertNotNull(createdPerson.getFirstName());
-        assertNotNull(createdPerson.getLastName());
-        assertNotNull(createdPerson.getAddress());
-        assertNotNull(createdPerson.getGender());
+        assertNotNull(persistedPerson);
 
-        assertTrue(createdPerson.getId() > 0);
+        assertNotNull(persistedPerson.getId());
+        assertNotNull(persistedPerson.getFirstName());
+        assertNotNull(persistedPerson.getLastName());
+        assertNotNull(persistedPerson.getAddress());
+        assertNotNull(persistedPerson.getGender());
 
-        assertEquals("Richard", createdPerson.getFirstName());
-        assertEquals("Stallnman", createdPerson.getLastName());
-        assertEquals("New York City, New York, US", createdPerson.getAddress());
-        assertEquals("Male", createdPerson.getGender());
+        assertTrue(persistedPerson.getEnabled());
+        assertTrue(persistedPerson.getId() > 0);
+
+        assertEquals("Nelson", persistedPerson.getFirstName());
+        assertEquals("Piquet", persistedPerson.getLastName());
+        assertEquals("Brasília - DF - Brasil", persistedPerson.getAddress());
+        assertEquals("Male", persistedPerson.getGender());
     }
 
     @Test
     @Order(2)
-    void testCreateWithWrongOrigin(){
-        mockPerson();
-
-        specification = new RequestSpecBuilder()
-                .addHeader(TesteConfigs.HEADER_PARAM_ORIGIN,TesteConfigs.ORIGIN_SEMERU)
-                .setBasePath("/api/person/v1")
-                .setPort(TesteConfigs.SERVER_PORT)
-                .addFilter(new RequestLoggingFilter(LogDetail.ALL))
-                .addFilter(new ResponseLoggingFilter(LogDetail.ALL))
-                .build();
+    public void testUpdate() throws JsonMappingException, JsonProcessingException {
+        person.setLastName("Piquet Souto Maior");
 
         var content = given().spec(specification)
                 .contentType(TesteConfigs.CONTENT_TYPE_JSON)
-                .body(personDto)
-                .when().post()
-                .then().statusCode(403)
-                .extract().body().asString();
+                .body(person)
+                .when()
+                .post()
+                .then()
+                .statusCode(200)
+                .extract()
+                .body()
+                .asString();
 
-        assertNotNull(content);
+        PersonDto persistedPerson = objectMapper.readValue(content, PersonDto.class);
+        person = persistedPerson;
 
-        assertEquals("Invalid CORS request", content);
+        assertNotNull(persistedPerson);
+
+        assertNotNull(persistedPerson.getId());
+        assertNotNull(persistedPerson.getFirstName());
+        assertNotNull(persistedPerson.getLastName());
+        assertNotNull(persistedPerson.getAddress());
+        assertNotNull(persistedPerson.getGender());
+        assertTrue(persistedPerson.getEnabled());
+
+        assertEquals(person.getId(), persistedPerson.getId());
+
+        assertEquals("Nelson", persistedPerson.getFirstName());
+        assertEquals("Piquet Souto Maior", persistedPerson.getLastName());
+        assertEquals("Brasília - DF - Brasil", persistedPerson.getAddress());
+        assertEquals("Male", persistedPerson.getGender());
     }
 
     @Test
     @Order(3)
-    void testFindById() throws JsonProcessingException {
-        mockPerson();
-
-        specification = new RequestSpecBuilder()
-                .addHeader(TesteConfigs.HEADER_PARAM_ORIGIN,TesteConfigs.ORIGIN_ERUDIO)
-                .setBasePath("/api/person/v1")
-                .setPort(TesteConfigs.SERVER_PORT)
-                .addFilter(new RequestLoggingFilter(LogDetail.ALL))
-                .addFilter(new ResponseLoggingFilter(LogDetail.ALL))
-                .build();
+    public void testDisablePersonById() throws JsonMappingException, JsonProcessingException {
 
         var content = given().spec(specification)
                 .contentType(TesteConfigs.CONTENT_TYPE_JSON)
-                .pathParam("id", personDto.getId())
-                .when().get("{id}")
-                .then().statusCode(200)
-                .extract().body().asString();
+                .pathParam("id", person.getId())
+                .when()
+                .patch("{id}")
+                .then()
+                .statusCode(200)
+                .extract()
+                .body()
+                .asString();
 
-        PersonDto createdPerson = objectMapper.readValue(content, PersonDto.class);
-        personDto = createdPerson;
+        PersonDto persistedPerson = objectMapper.readValue(content, PersonDto.class);
+        person = persistedPerson;
 
-        assertNotNull(createdPerson);
-        assertNotNull(createdPerson.getId());
-        assertNotNull(createdPerson.getFirstName());
-        assertNotNull(createdPerson.getLastName());
-        assertNotNull(createdPerson.getAddress());
-        assertNotNull(createdPerson.getGender());
+        assertNotNull(persistedPerson);
 
-        assertTrue(createdPerson.getId() > 0);
+        assertNotNull(persistedPerson.getId());
+        assertNotNull(persistedPerson.getFirstName());
+        assertNotNull(persistedPerson.getLastName());
+        assertNotNull(persistedPerson.getAddress());
+        assertNotNull(persistedPerson.getGender());
+        assertFalse(persistedPerson.getEnabled());
 
-        assertEquals("Richard", createdPerson.getFirstName());
-        assertEquals("Stallnman", createdPerson.getLastName());
-        assertEquals("New York City, New York, US", createdPerson.getAddress());
-        assertEquals("Male", createdPerson.getGender());
+        assertEquals(person.getId(), persistedPerson.getId());
+
+        assertEquals("Nelson", persistedPerson.getFirstName());
+        assertEquals("Piquet Souto Maior", persistedPerson.getLastName());
+        assertEquals("Brasília - DF - Brasil", persistedPerson.getAddress());
+        assertEquals("Male", persistedPerson.getGender());
     }
 
     @Test
     @Order(4)
-    void testFindByIdWithWrongOrigin(){
+    public void testFindById() throws JsonMappingException, JsonProcessingException {
         mockPerson();
 
-        specification = new RequestSpecBuilder()
-                .addHeader(TesteConfigs.HEADER_PARAM_ORIGIN,TesteConfigs.ORIGIN_SEMERU)
+        var content = given().spec(specification)
+                .contentType(TesteConfigs.CONTENT_TYPE_JSON)
+                .pathParam("id", person.getId())
+                .when()
+                .get("{id}")
+                .then()
+                .statusCode(200)
+                .extract()
+                .body()
+                .asString();
+
+        PersonDto persistedPerson = objectMapper.readValue(content, PersonDto.class);
+        person = persistedPerson;
+
+        assertNotNull(persistedPerson);
+
+        assertNotNull(persistedPerson.getId());
+        assertNotNull(persistedPerson.getFirstName());
+        assertNotNull(persistedPerson.getLastName());
+        assertNotNull(persistedPerson.getAddress());
+        assertNotNull(persistedPerson.getGender());
+        assertFalse(persistedPerson.getEnabled());
+
+        assertEquals(person.getId(), persistedPerson.getId());
+
+        assertEquals("Nelson", persistedPerson.getFirstName());
+        assertEquals("Piquet Souto Maior", persistedPerson.getLastName());
+        assertEquals("Brasília - DF - Brasil", persistedPerson.getAddress());
+        assertEquals("Male", persistedPerson.getGender());
+    }
+
+    @Test
+    @Order(5)
+    public void testDelete() throws JsonMappingException, JsonProcessingException {
+
+        given().spec(specification)
+                .contentType(TesteConfigs.CONTENT_TYPE_JSON)
+                .pathParam("id", person.getId())
+                .when()
+                .delete("{id}")
+                .then()
+                .statusCode(204);
+    }
+
+    @Test
+    @Order(6)
+    public void testFindAll() throws JsonMappingException, JsonProcessingException {
+
+        var content = given().spec(specification)
+                .contentType(TesteConfigs.CONTENT_TYPE_JSON)
+                .when()
+                .get()
+                .then()
+                .statusCode(200)
+                .extract()
+                .body()
+                .asString();
+
+        List<PersonDto> people = objectMapper.readValue(content, new TypeReference<List<PersonDto>>() {});
+
+        PersonDto foundPersonOne = people.get(0);
+
+        assertNotNull(foundPersonOne.getId());
+        assertNotNull(foundPersonOne.getFirstName());
+        assertNotNull(foundPersonOne.getLastName());
+        assertNotNull(foundPersonOne.getAddress());
+        assertNotNull(foundPersonOne.getGender());
+
+        assertTrue(foundPersonOne.getEnabled());
+
+        assertEquals(1, foundPersonOne.getId());
+
+        assertEquals("Ayrton", foundPersonOne.getFirstName());
+        assertEquals("Senna", foundPersonOne.getLastName());
+        assertEquals("São Paulo", foundPersonOne.getAddress());
+        assertEquals("Male", foundPersonOne.getGender());
+
+        PersonDto foundPersonSix = people.get(5);
+
+        assertNotNull(foundPersonSix.getId());
+        assertNotNull(foundPersonSix.getFirstName());
+        assertNotNull(foundPersonSix.getLastName());
+        assertNotNull(foundPersonSix.getAddress());
+        assertNotNull(foundPersonSix.getGender());
+
+        assertTrue(foundPersonSix.getEnabled());
+
+        assertEquals(9, foundPersonSix.getId());
+
+        assertEquals("Nelson", foundPersonSix.getFirstName());
+        assertEquals("Mvezo", foundPersonSix.getLastName());
+        assertEquals("Mvezo – South Africa", foundPersonSix.getAddress());
+        assertEquals("Male", foundPersonSix.getGender());
+    }
+
+
+    @Test
+    @Order(7)
+    public void testFindAllWithoutToken() throws JsonMappingException, JsonProcessingException {
+
+        RequestSpecification specificationWithoutToken = new RequestSpecBuilder()
                 .setBasePath("/api/person/v1")
                 .setPort(TesteConfigs.SERVER_PORT)
                 .addFilter(new RequestLoggingFilter(LogDetail.ALL))
                 .addFilter(new ResponseLoggingFilter(LogDetail.ALL))
                 .build();
 
-        var content = given().spec(specification)
+        given().spec(specificationWithoutToken)
                 .contentType(TesteConfigs.CONTENT_TYPE_JSON)
-                .pathParam("id", personDto.getId())
-                .when().get("{id}")
-                .then().statusCode(403)
-                .extract().body().asString();
-
-        assertNotNull(content);
-
-        assertEquals("Invalid CORS request", content);
+                .when()
+                .get()
+                .then()
+                .statusCode(403);
     }
 
     private void mockPerson() {
-        personDto.setFirstName("Richard");
-        personDto.setLastName("Stallnman");
-        personDto.setAddress("New York City, New York, US");
-        personDto.setGender("Male");
+        person.setFirstName("Nelson");
+        person.setLastName("Piquet");
+        person.setAddress("Brasília - DF - Brasil");
+        person.setGender("Male");
+        person.setEnabled(true);
     }
 }

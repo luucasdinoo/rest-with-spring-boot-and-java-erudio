@@ -10,7 +10,7 @@ public class TesteConfigs {
 
     public static final String  CONTENT_TYPE_JSON = "application/json";
     public static final String  CONTENT_TYPE_XML = "application/xml";
-    public static final String  CONTENT_TYPE_YAML = "application/x-yaml";
+    public static final String  CONTENT_TYPE_YML = "application/x-yaml";
 
     public static final String  ORIGIN_ERUDIO = "https://www.erudio.com";
     public static final String  ORIGIN_SEMERU = "https://www.semeru.com";
