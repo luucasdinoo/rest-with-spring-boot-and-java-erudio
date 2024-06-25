@@ -246,6 +246,8 @@ public class BookControllerJsonTest extends AbstractIntegrationTest {
 		
 		assertTrue(content.contains("\"page\":{\"size\":12,\"totalElements\":15,\"totalPages\":2,\"number\":0}}"));
 	}
+
+
 	
     private void mockBook() {
         book.setTitle("Docker Deep Dive");
