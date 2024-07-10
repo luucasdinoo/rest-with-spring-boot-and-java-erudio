@@ -1,4 +1,4 @@
-package br.com.erudio.restwithspringbootandjavaerudio.integrationtests.controllers.json;
+package br.com.erudio.restwithspringbootandjavaerudio.integrationtests.controllers.cors;
 
 import static io.restassured.RestAssured.given;
 import static org.junit.Assert.assertNotNull;

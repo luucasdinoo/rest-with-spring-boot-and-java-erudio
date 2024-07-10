@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import br.com.erudio.restwithspringbootandjavaerudio.configs.TesteConfigs;
 import br.com.erudio.restwithspringbootandjavaerudio.integrationtests.dto.pagedmodels.PagedModelPerson;
-import br.com.erudio.restwithspringbootandjavaerudio.model.dto.security.AccountCredentialDto;
-import br.com.erudio.restwithspringbootandjavaerudio.model.dto.security.TokenDto;
+import br.com.erudio.restwithspringbootandjavaerudio.security.dto.AccountCredentialDto;
+import br.com.erudio.restwithspringbootandjavaerudio.security.dto.TokenDto;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import io.restassured.mapper.ObjectMapper;
 import org.junit.jupiter.api.BeforeAll;

@@ -10,8 +10,8 @@ import br.com.erudio.restwithspringbootandjavaerudio.configs.TesteConfigs;
 import br.com.erudio.restwithspringbootandjavaerudio.integrationtests.dto.entities.PersonDto;
 import br.com.erudio.restwithspringbootandjavaerudio.integrationtests.dto.pagedmodels.PagedModelPerson;
 import br.com.erudio.restwithspringbootandjavaerudio.integrationtests.testcontainers.AbstractIntegrationTest;
-import br.com.erudio.restwithspringbootandjavaerudio.model.dto.security.AccountCredentialDto;
-import br.com.erudio.restwithspringbootandjavaerudio.model.dto.security.TokenDto;
+import br.com.erudio.restwithspringbootandjavaerudio.security.dto.AccountCredentialDto;
+import br.com.erudio.restwithspringbootandjavaerudio.security.dto.TokenDto;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
@@ -360,7 +360,7 @@ public class PersonControllerXmlTest extends AbstractIntegrationTest {
 	public void testHATEOAS() throws JsonMappingException, JsonProcessingException {
 
 		var content = given().spec(specification)
-				.contentType(TesteConfigs.CONTENT_TYPE_XML)
+				.contentType(TesteConfigs.CONTENT_TYPE_XML)  
 				.accept(TesteConfigs.CONTENT_TYPE_XML)
 				.queryParams("page", 3, "size", 10, "direction", "asc")
 				.when()
