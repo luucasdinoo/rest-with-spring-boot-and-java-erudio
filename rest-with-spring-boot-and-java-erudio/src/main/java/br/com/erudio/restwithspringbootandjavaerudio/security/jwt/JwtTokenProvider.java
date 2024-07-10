@@ -1,7 +1,7 @@
 package br.com.erudio.restwithspringbootandjavaerudio.security.jwt;
 
 import br.com.erudio.restwithspringbootandjavaerudio.exceptions.InvalidJwtAuthenticationException;
-import br.com.erudio.restwithspringbootandjavaerudio.model.dto.security.TokenDto;
+import br.com.erudio.restwithspringbootandjavaerudio.security.dto.TokenDto;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;

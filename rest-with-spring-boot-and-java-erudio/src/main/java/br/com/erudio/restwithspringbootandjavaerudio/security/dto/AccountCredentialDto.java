@@ -1,4 +1,4 @@
-package br.com.erudio.restwithspringbootandjavaerudio.model.dto.security;
+package br.com.erudio.restwithspringbootandjavaerudio.security.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

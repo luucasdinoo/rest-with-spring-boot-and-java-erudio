@@ -45,7 +45,7 @@ public class PersonController {
         return personService.findById(id);
     }
 
-    @GetMapping(produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.APPLICATION_YML})
+        @GetMapping(produces = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.APPLICATION_YML})
     @Operation(summary = "Finds all people", description = "Finds all people",
             tags = {"People"},
             responses = {

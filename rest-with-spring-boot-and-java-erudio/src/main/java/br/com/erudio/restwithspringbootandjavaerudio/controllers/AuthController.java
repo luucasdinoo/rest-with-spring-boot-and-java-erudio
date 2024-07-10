@@ -1,6 +1,6 @@
 package br.com.erudio.restwithspringbootandjavaerudio.controllers;
 
-import br.com.erudio.restwithspringbootandjavaerudio.model.dto.security.AccountCredentialDto;
+import br.com.erudio.restwithspringbootandjavaerudio.security.dto.AccountCredentialDto;
 import br.com.erudio.restwithspringbootandjavaerudio.services.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

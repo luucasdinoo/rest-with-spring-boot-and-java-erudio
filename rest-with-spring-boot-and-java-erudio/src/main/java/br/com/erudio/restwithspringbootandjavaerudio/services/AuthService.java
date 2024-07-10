@@ -1,8 +1,8 @@
 package br.com.erudio.restwithspringbootandjavaerudio.services;
 
-import br.com.erudio.restwithspringbootandjavaerudio.model.dto.security.AccountCredentialDto;
-import br.com.erudio.restwithspringbootandjavaerudio.model.dto.security.TokenDto;
 import br.com.erudio.restwithspringbootandjavaerudio.repositories.UserRepository;
+import br.com.erudio.restwithspringbootandjavaerudio.security.dto.AccountCredentialDto;
+import br.com.erudio.restwithspringbootandjavaerudio.security.dto.TokenDto;
 import br.com.erudio.restwithspringbootandjavaerudio.security.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

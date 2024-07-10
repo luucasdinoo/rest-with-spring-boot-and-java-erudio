@@ -1,5 +1,11 @@
+server:
+  port: 80
+
 cors:
   originPatterns: http://localhost:8080,http://localhost:3000,https://erudio.com.br
+
+file:
+  upload-dir: #/Code/UploadDir
 
 security:
   jwt:
@@ -21,7 +27,14 @@ spring:
     hibernate:
       ddl-auto: none
     show-sql: false
-    open-in-view: false
+    open-in-view:
+
+  servlet:
+    multipart:
+      enabled: true
+      file-size-threshold: 2KB
+      max-file-size: 200MB
+      max-request-size: 215MB
 
 spring-doc:
   # Documentar apenas os endpoints informados abaixo
@@ -30,3 +43,4 @@ spring-doc:
     - /api/**/v1/**
   swagger-ui:
     use-root-path: true
+
